@@ -1,11 +1,14 @@
-from flask import Flask, jsonify, request, session
-from flask_cors import CORS
+from flask import Flask, render_template, request, redirect, session, flash, url_for
 import mysql.connector
+import os
 
-app = Flask(__name__)
-app.secret_key = 'your_secret_key'
-CORS(app)
+app = Flask(__name__, template_folder='templates')
+app.secret_key = ' '
 
+print('Current Working Directory:', os.getcwd())
+print('Templates Path:', app.template_folder)
+
+# Database connection
 db = mysql.connector.connect(
     host='localhost',
     user='root',
@@ -24,12 +27,23 @@ CREATE TABLE IF NOT EXISTS users (
 )
 """)
 
+
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS contact_us (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    message TEXT NOT NULL
+)
+""")
+
 db.commit()
 
 @app.route('/')
 def home():
     if 'user' in session:
-        return render_template('dashboard.html', username=session['user'])
+        return render_template('home.html', username=session['user'])
     return redirect('/login')
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -41,7 +55,7 @@ def register():
         db.commit()
         return redirect('/login')
     return render_template('register.html')
-
+  
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -51,8 +65,13 @@ def login():
         user = cursor.fetchone()
         if user:
             session['user'] = username
-            return redirect('/')
-    return send_file('')
+            return redirect(url_for('admin'))
+    return render_template('index.html')
+
+@app.route('/admin/login', methods=['GET', 'POST'])
+def admin():
+    
+    return render_template('admin.html')
 
 @app.route('/logout')
 def logout():
@@ -91,6 +110,27 @@ def withdraw():
             return redirect('/balance')
         return render_template('withdraw.html')
     return redirect('/login')
+
+@app.route('/contact', methods=['GET', 'POST'])
+def contact():
+    if request.method == 'POST':
+        name = request.form['name']
+        email = request.form['email']
+        message = request.form['message']
+        try:
+            cursor.execute("INSERT INTO contact_us (name, email, message) VALUES (%s, %s, %s)", (name, email, message))
+            db.commit()
+            flash('Your message has been submitted successfully!', 'success')
+        except Exception as e:
+            flash('Error submitting message. Please try again.', 'danger')
+        return redirect('/contact')
+    return render_template('contact.html')
+
+@app.route('/contact/message')
+def view_messages():
+    cursor.execute("SELECT * FROM contact_us")
+    messages = cursor.fetchall()
+    return render_template('message.html', messages=messages)
 
 if __name__ == '__main__':
     app.run(debug=True)
