@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, session, flash, url_for
 import mysql.connector
+from werkzeug.utils import secure_filename
 import os
 
 app = Flask(__name__, template_folder='templates')
@@ -7,6 +8,11 @@ app.secret_key = ' '
 
 print('Current Working Directory:', os.getcwd())
 print('Templates Path:', app.template_folder)
+
+
+app.config['UPLOAD_FOLDER'] = 'static/uploads'
+
+
 
 # Database connection
 db = mysql.connector.connect(
@@ -28,7 +34,6 @@ CREATE TABLE IF NOT EXISTS users (
 """)
 
 
-
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS contact_us (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -40,6 +45,10 @@ CREATE TABLE IF NOT EXISTS contact_us (
 
 db.commit()
 
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}
+
+
 @app.route('/')
 def home():
     if 'user' in session:
@@ -49,13 +58,41 @@ def home():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        username = request.form['username']
+        first_name = request.form['first_name']
+        last_name = request.form['last_name']
+        father_name = request.form['father_name']
+        email = request.form['email']
+        phone = request.form['phone']
         password = request.form['password']
-        cursor.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, password))
-        db.commit()
-        return redirect('/login')
+        confirm_password = request.form['confirm_password']
+        otp_verified = request.form.get('otp_verified')  # Expect 'true' if verified
+        profile_picture = request.files['profile_picture']
+
+        if password != confirm_password:
+            flash("Passwords do not match!", "danger")
+            return redirect('/register')
+
+        if otp_verified != "true":
+            flash("Phone number not verified!", "danger")
+            return redirect('/register')
+
+        if profile_picture and allowed_file(profile_picture.filename):
+            filename_ext = profile_picture.filename.rsplit('.', 1)[1].lower()
+            new_filename = f"{email}_{int(datetime.datetime.now().timestamp())}.{filename_ext}"
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], new_filename)
+            profile_picture.save(filepath)
+
+            cursor.execute("""
+                INSERT INTO users (first_name, last_name, father_name, email, phone, password, profile_picture, otp_verified)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """, (first_name, last_name, father_name, email, phone, password, new_filename, True))
+            db.commit()
+
+            flash("Registration successful!", "success")
+            return redirect('/login')
+
     return render_template('register.html')
-  
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
