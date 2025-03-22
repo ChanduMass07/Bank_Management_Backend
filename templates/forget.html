@@ -11,22 +11,34 @@
         <h1>Reset Your Password</h1>
     </header>
     <section class="form-container">
-        <p>Enter your registered email address, and we’ll send you a link to reset your password.</p>
+        <p>Enter your registered email address, and we'll send you a link to reset your password.</p>
         
         <form id="forgotPasswordForm">
             <input type="email" id="resetEmail" placeholder="Enter your email" required>
             <button type="submit">Send Reset Link</button>
         </form>
 
-        <p><a href="index.html">Back to Login</a></p>
+        <p id="message"></p>
+
+        <p><a href="/index">Back to Login</a></p>
     </section>
 
     <script>
         document.getElementById("forgotPasswordForm").addEventListener("submit", function(event) {
             event.preventDefault();
             const email = document.getElementById("resetEmail").value;
-            alert("A password reset link has been sent to " + email);
-            // In real implementation, send the reset request to backend API.
+            
+            fetch('/forgot', {
+                method: 'POST',
+                headers:{ 'Content-Type': 'appication/json'
+                },
+                body:JSON.stringify({email:email})
+            })
+            .then(Response=>Response.json())
+            .then(data=>{
+                document.getElementById("message").innerText=data.message || data.error;
+            })
+            .catch(error=>console.error("Error:", error));
         });
     </script>
 </body>

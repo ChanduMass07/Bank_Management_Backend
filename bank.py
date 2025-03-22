@@ -1,10 +1,16 @@
-from flask import Flask, render_template, request, redirect, session, flash, url_for
+from flask import Flask, render_template, request, redirect, session, jsonify, flash, url_for
 import mysql.connector
 from werkzeug.utils import secure_filename
 import os
+import datetime
+from flask_cors import CORS
+from flask_mail import Mail, Message
+from itsdangerous import URLSafeTimedSerializer
+
 
 app = Flask(__name__, template_folder='templates')
-app.secret_key = ' '
+app.secret_key = 'Manumass'
+CORS(app) #allows frotnend to communicate with the backend
 
 print('Current Working Directory:', os.getcwd())
 print('Templates Path:', app.template_folder)
@@ -45,14 +51,25 @@ CREATE TABLE IF NOT EXISTS contact_us (
 
 db.commit()
 
+# Flask-Mail Configuration
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'  
+app.config['MAIL_PORT'] = 587  
+app.config['MAIL_USE_TLS'] = True  
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_USER') 
+
+mail = Mail(app)
+serializer = URLSafeTimedSerializer("Manumass")  # Secret key for token generation
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}
 
 
-@app.route('/')
-def home():
+@app.route('/userpanel')
+def userpanel():
     if 'user' in session:
-        return render_template('home.html', username=session['user'])
+        return render_template('userpanel.html', username=session['user'])
     return redirect('/login')
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -168,6 +185,46 @@ def view_messages():
     cursor.execute("SELECT * FROM contact_us")
     messages = cursor.fetchall()
     return render_template('message.html', messages=messages)
+
+@app.route('/forget', methods=['POST'])
+def forget():
+    data = request.json
+    email = data.get('email')
+
+    # Check if email exists in database
+    cursor.execute("SELECT id FROM users WHERE email=%s", (email,))
+    user = cursor.fetchone()
+
+    if user:
+        token = serializer.dumps(email, salt="password-reset-salt")  # Generate reset token
+        reset_url = url_for('reset_password', token=token, _external=True)
+
+        # Send email with reset link
+        msg = Message("Password Reset Request", sender="your_email@gmail.com", recipients=[email])
+        msg.body = f"Click the link to reset your password: {reset_url}"
+        mail.send(msg)
+
+        return jsonify({"message": "Password reset link has been sent to your email."})
+    else:
+        return jsonify({"error": "Email not found"}), 404
+
+
+@app.route('/reset-password/<token>', methods=['POST'])
+def reset_password(token):
+    try:
+        email = serializer.loads(token, salt="password-reset-salt", max_age=3600)  # Validate token (1-hour expiry)
+    except:
+        return jsonify({"error": "Invalid or expired token"}), 400
+
+    data = request.json
+    new_password = data.get('password')
+
+    # Update password in database
+    cursor.execute("UPDATE users SET password=%s WHERE email=%s", (new_password, email))
+    db.commit()
+
+    return jsonify({"message": "Password has been reset successfully."})
+
 
 if __name__ == '__main__':
     app.run(debug=True)

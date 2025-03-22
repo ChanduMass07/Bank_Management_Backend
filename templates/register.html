@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{{url_for('static', filename='css/register.css')}}">
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js"></script>
 </head>
 <body>
     <header>
@@ -50,6 +51,6 @@
         <p>Already have an account? <a href="index.html">Login here</a></p>
     </section>
 
-    <script src="{{url_for('static', filename='register.js')}}"></script>
+    <script src="{{ url_for('static', filename='register.js') }}"></script>
 </body>
 </html>
