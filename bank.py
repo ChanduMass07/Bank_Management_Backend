@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, session, jsonify, flash, url_for
 import mysql.connector
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import datetime
 from flask_cors import CORS
@@ -66,11 +67,13 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}
 
 
+@app.route('/')
+def home():
+   return render_template('welcome.html')
+
 @app.route('/userpanel')
-def userpanel():
-    if 'user' in session:
-        return render_template('userpanel.html', username=session['user'])
-    return redirect('/login')
+def user_panel():
+    return render_template('userpanel.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -92,6 +95,11 @@ def register():
         if otp_verified != "true":
             flash("Phone number not verified!", "danger")
             return redirect('/register')
+        
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256', salt_length=8)
+
+        
+
 
         if profile_picture and allowed_file(profile_picture.filename):
             filename_ext = profile_picture.filename.rsplit('.', 1)[1].lower()
@@ -122,15 +130,38 @@ def login():
             return redirect(url_for('admin'))
     return render_template('index.html')
 
-@app.route('/admin/login', methods=['GET', 'POST'])
+@app.route('/admin')
 def admin():
-    
     return render_template('admin.html')
 
 @app.route('/logout')
 def logout():
     session.pop('user', None)
     return redirect('/login')
+
+@app.route('/userpanel')
+def userpanel():
+    return render_template('userpanel.html')
+
+@app.route('/account')
+def account():
+    return render_template('account.html')
+
+@app.route('/loan')
+def loan():
+    return render_template('loan.html')
+
+@app.route('/loanmanage')
+def loanmanage():
+    return render_template('loanmanage.html')
+
+@app.route('/trans')
+def trans():
+    return render_template('trans.html')
+
+@app.route('/transfer')
+def transfer():
+    return render_template('transfer.html')
 
 @app.route('/balance')
 def balance():
@@ -186,44 +217,9 @@ def view_messages():
     messages = cursor.fetchall()
     return render_template('message.html', messages=messages)
 
-@app.route('/forget', methods=['POST'])
+@app.route('/forget')
 def forget():
-    data = request.json
-    email = data.get('email')
-
-    # Check if email exists in database
-    cursor.execute("SELECT id FROM users WHERE email=%s", (email,))
-    user = cursor.fetchone()
-
-    if user:
-        token = serializer.dumps(email, salt="password-reset-salt")  # Generate reset token
-        reset_url = url_for('reset_password', token=token, _external=True)
-
-        # Send email with reset link
-        msg = Message("Password Reset Request", sender="your_email@gmail.com", recipients=[email])
-        msg.body = f"Click the link to reset your password: {reset_url}"
-        mail.send(msg)
-
-        return jsonify({"message": "Password reset link has been sent to your email."})
-    else:
-        return jsonify({"error": "Email not found"}), 404
-
-
-@app.route('/reset-password/<token>', methods=['POST'])
-def reset_password(token):
-    try:
-        email = serializer.loads(token, salt="password-reset-salt", max_age=3600)  # Validate token (1-hour expiry)
-    except:
-        return jsonify({"error": "Invalid or expired token"}), 400
-
-    data = request.json
-    new_password = data.get('password')
-
-    # Update password in database
-    cursor.execute("UPDATE users SET password=%s WHERE email=%s", (new_password, email))
-    db.commit()
-
-    return jsonify({"message": "Password has been reset successfully."})
+    return render_template('forget.html')
 
 
 if __name__ == '__main__':

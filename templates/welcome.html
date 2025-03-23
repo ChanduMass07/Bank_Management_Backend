@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome | Bank Management System</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='css/wel.css')}}">
+</head>
+<body>
+    <div class="welcome-container">
+        <img src="{{url_for('static', filename='images/BANK.webp')}}" alt="Bank Management System Logo" width="200">
+        <h1>Welcome to Bank Management System</h1>
+        <p>Your secure and smart banking solution.</p>
+        <div class="buttons">
+            <a href="{{url_for('login')}}" class="btn-3d">Let's START</a>
+           
+        </div>
+    </div>
+</body>
+</html>

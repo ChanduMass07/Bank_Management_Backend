@@ -24,23 +24,29 @@
     </section>
 
     <script>
-        document.getElementById("forgotPasswordForm").addEventListener("submit", function(event) {
+        document.getElementById("forgotPasswordForm").addEventListener("submit", async function(event) {
             event.preventDefault();
+            
             const email = document.getElementById("resetEmail").value;
             
-            fetch('/forgot', {
-                method: 'POST',
-                headers:{ 'Content-Type': 'appication/json'
+            const response = await fetch("/forgot-password", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
                 },
-                body:JSON.stringify({email:email})
-            })
-            .then(Response=>Response.json())
-            .then(data=>{
-                document.getElementById("message").innerText=data.message || data.error;
-            })
-            .catch(error=>console.error("Error:", error));
+                body: JSON.stringify({ email: email })
+            });
+    
+            const result = await response.json();
+            
+            if (response.ok) {
+                alert(result.message);  // Success message
+            } else {
+                alert("Error: " + result.error);  // Error message (e.g., email not found)
+            }
         });
     </script>
+    
 </body>
 </html>
 

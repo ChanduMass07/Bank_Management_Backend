@@ -50,7 +50,7 @@
         </form>
         
         <p>Don't have an account? <a href="/register">Register here</a></p>
-        <a href="{{url_for('userpanel') }}">Demo</a>
+        <a href="{{url_for('userpanel')}}">Demo</a>
     </section>
 
     <script>
@@ -81,7 +81,7 @@
 
                 if (email === staticAdminEmail && password === staticAdminPassword) {
                     alert("Admin Login Successful!");
-                    window.location.href = "admin.html"; // Redirect admin
+                    window.location.href = "{{url_for('admin') }}"; // Redirect admin
                 } else {
                     alert("Invalid Admin Email or Password!");
                 }
