@@ -22,7 +22,7 @@ app.config['UPLOAD_FOLDER'] = 'static/uploads'
 
 # Database connection
 db = mysql.connector.connect(
-    host='localhost',
+    host='127.0.0.1',
     user='root',
     password='Admin@123',
     database='Bank_Management'
