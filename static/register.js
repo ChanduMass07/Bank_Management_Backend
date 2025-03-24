@@ -1,14 +1,13 @@
-
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
     apiKey: "AIzaSyDi2VQRdGRqYG3l-BCks54Q1Y7DJxI5OHw",
     authDomain: "bank-app-1f2f4.firebaseapp.com",
     projectId: "bank-app-1f2f4",
-    storageBucket: "bank-app-1f2f4.firebasestorage.app",
+    storageBucket: "bank-app-1f2f4.appspot.com",
     messagingSenderId: "815393510851",
     appId: "1:815393510851:web:6fe52fb942657653e85976",
     measurementId: "G-MMTZHLBV0Q"
-  };
+};
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
@@ -32,8 +31,8 @@ document.getElementById("sendOtp").addEventListener("click", function() {
         return;
     }
 
-    const appVerifier = new firebase.auth.RecaptchaVerifier("recaptcha-container");
-    auth.signInWithPhoneNumber("+91" + phoneNumber, appVerifier)
+    const appVerifier = window.recaptchaVerifier;
+    firebase.auth().signInWithPhoneNumber("+91" + phoneNumber, appVerifier)
         .then(confirmationResult => {
             window.confirmationResult = confirmationResult;
             alert("OTP Sent! Check your phone.");
@@ -45,7 +44,7 @@ document.getElementById("sendOtp").addEventListener("click", function() {
 
 // OTP Verification Function
 document.getElementById("verifyOtp").addEventListener("click", function() {
-    const otp = document.getElementById("otp").value.trime();
+    const otp = document.getElementById("otp").value.trim();
     if (!otp) {
         alert("Please enter the OTP.");
         return;
@@ -54,7 +53,7 @@ document.getElementById("verifyOtp").addEventListener("click", function() {
     window.confirmationResult.confirm(otp)
         .then(result => {
             alert("Phone number verified!");
-            document.getElementById("otp_verified").value="true";
+            document.getElementById("otp_verified").value = "true";
         }).catch(error => {
             console.error(error);
             alert("Invalid OTP. Please try again.");
@@ -79,8 +78,9 @@ document.getElementById("registerForm").addEventListener("submit", function(even
         alert("Name must be at least 3 characters.");
         return;
     }
-    if(password !== confirmPassword){
-        alert("Password do not match.");
+
+    if (password !== confirmPassword) {
+        alert("Passwords do not match.");
         return;
     }
 
@@ -88,7 +88,7 @@ document.getElementById("registerForm").addEventListener("submit", function(even
         alert("Password must be at least 6 characters long.");
         return;
     }
-    
+
     if (!profilePhoto) {
         alert("Please upload a profile photo.");
         return;
@@ -105,5 +105,5 @@ document.getElementById("registerForm").addEventListener("submit", function(even
     }
 
     alert("Registration Successful!");
-    this.onsubmit();
+    this.submit();
 });

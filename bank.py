@@ -5,8 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import datetime
 from flask_cors import CORS
-from flask_mail import Mail, Message
-from itsdangerous import URLSafeTimedSerializer
+
 
 
 app = Flask(__name__, template_folder='templates')
@@ -52,17 +51,6 @@ CREATE TABLE IF NOT EXISTS contact_us (
 
 db.commit()
 
-# Flask-Mail Configuration
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'  
-app.config['MAIL_PORT'] = 587  
-app.config['MAIL_USE_TLS'] = True  
-app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
-app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
-app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_USER') 
-
-mail = Mail(app)
-serializer = URLSafeTimedSerializer("Manumass")  # Secret key for token generation
-
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}
 
@@ -97,9 +85,6 @@ def register():
             return redirect('/register')
         
         hashed_password = generate_password_hash(password, method='pbkdf2:sha256', salt_length=8)
-
-        
-
 
         if profile_picture and allowed_file(profile_picture.filename):
             filename_ext = profile_picture.filename.rsplit('.', 1)[1].lower()
