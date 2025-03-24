@@ -7,7 +7,7 @@ flask-cors==5.0.1
 itsdangerous==2.2.0
 Jinja2==3.1.5
 MarkupSafe==3.0.2
-mysql-connector-python==9.2.0
+mysql-connector-python==8.2.0
 pyttsx3==2.98
 SpeechRecognition==3.14.1
 standard-aifc==3.13.0
