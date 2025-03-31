@@ -3,7 +3,7 @@ import mysql.connector
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
-import datetime
+from datetime import datetime
 from flask_cors import CORS
 
 
@@ -20,9 +20,8 @@ app.config['UPLOAD_FOLDER'] = 'static/uploads'
 
 
 
-# Database connection
 db = mysql.connector.connect(
-    host='127.0.0.1',
+    host='localhost',
     user='root',
     password='Admin@123',
     database='Bank_Management'
@@ -102,6 +101,7 @@ def register():
             return redirect('/login')
 
     return render_template('register.html')
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

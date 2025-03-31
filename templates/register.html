@@ -40,18 +40,55 @@
 
             <label for="phone">Phone Number</label>
             <input type="tel" id="phone" placeholder="Phone Number" required>
-            <div id="recaptcha-container"></div>
-            <button type="button" id="sendOtp">Send OTP</button>
-
-            <label for="otp">Enter OTP</label>
-            <input type="text" id="otp" placeholder="Enter OTP">
-            <button type="button" id="verifyOtp">Verify OTP</button>
+          
 
             <button type="submit">Register</button>
         </form>
         <p>Already have an account? <a href="{{url_for('login') }}">Login here</a></p>
     </section>
 
-    <script type="module" src="{{ url_for('static', filename='register.js') }}"></script>
+    <script>
+        function sendOTP() {
+            const phone = document.getElementById("phone").value;
+            if (!phone) {
+                alert("Please enter your phone number.");
+                return;
+            }
+
+            fetch("http://127.0.0.1:5000/generate_otp", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ phone_number: phone })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                document.getElementById("otp").classList.remove("hidden");
+                document.querySelector("button[onclick='verifyOTP()']").classList.remove("hidden");
+            })
+            .catch(error => console.error("Error:", error));
+        }
+
+        function verifyOTP() {
+            const phone = document.getElementById("phone").value;
+            const otp = document.getElementById("otp").value;
+
+            fetch("http://127.0.0.1:5000/verify_otp", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ phone_number: phone, otp: otp })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                if (data.success) {
+                    document.getElementById("registerForm").submit();
+                }
+            })
+            .catch(error => console.error("Error:", error));
+        }
+    </script>
+
+    
 </body>
 </html>
