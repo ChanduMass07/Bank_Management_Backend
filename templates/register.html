@@ -5,10 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register</title>
     <link rel="stylesheet" href="{{url_for('static', filename='css/register.css')}}">
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js"></script>
-
+   
 </head>
 <body>
     <header>
@@ -40,7 +37,12 @@
 
             <label for="phone">Phone Number</label>
             <input type="tel" id="phone" placeholder="Phone Number" required>
-          
+            <div id="recaptcha-container"></div>
+            <button onclick="send_otp()">Send OTP</button>
+            <label for="otp">Enter OTP</label>
+
+            <input type="text" id="otp" placeholder="Enter OTP">
+            <button onclick="verify_Otp()">Verify OTP</button>
 
             <button type="submit">Register</button>
         </form>

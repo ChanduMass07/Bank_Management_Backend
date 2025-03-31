@@ -3,6 +3,8 @@ import mysql.connector
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
+import random
+from flask_mail import Mail, Message
 from datetime import datetime
 from flask_cors import CORS
 
@@ -50,6 +52,15 @@ CREATE TABLE IF NOT EXISTS contact_us (
 
 db.commit()
 
+# Configure Flask-Mail
+app.config["MAIL_SERVER"] = "smtp.gmail.com"
+app.config["MAIL_PORT"] = 587
+app.config["MAIL_USE_TLS"] = True
+app.config["MAIL_USERNAME"] = "bankmanagement28@gmail.com"
+app.config["MAIL_PASSWORD"] = "pytm lloh rmto fjhu"
+
+mail = Mail(app)
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}
 
@@ -61,6 +72,43 @@ def home():
 @app.route('/userpanel')
 def user_panel():
     return render_template('userpanel.html')
+
+# Store OTPs temporarily
+otp_store = {}
+
+@app.route('/send-otp', methods=['POST'])
+def send_otp():
+    data = request.json
+    email = data.get("email")
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
+    
+    otp = str(random.randint(100000, 999999))
+    otp_store[email] = otp
+    
+    try:
+        msg = Message("Your OTP Code", recipients=[email])
+        msg.body = f"Your OTP code is: {otp}"
+        mail.send(msg)
+        return jsonify({"message": "OTP sent successfully"})
+    except Exception as e:
+        print("Error sending email:", e)
+        return jsonify({"error": "Failed to send OTP"}), 500
+
+@app.route('/verify-otp', methods=['POST'])
+def verify_otp():
+    data = request.json
+    email = data.get("email")
+    otp = data.get("otp")
+    
+    if not email or not otp:
+        return jsonify({"error": "Email and OTP are required"}), 400
+    
+    if otp_store.get(email) == otp:
+        del otp_store[email]
+        return jsonify({"message": "OTP verified successfully"})
+    else:
+        return jsonify({"error": "Invalid OTP"}), 400
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
